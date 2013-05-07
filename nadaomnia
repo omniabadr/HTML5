@@ -1,0 +1,314 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <!--<link href='http://fonts.googleapis.com/css?family=Snippet|Arvo:700italic|Podkova' rel='stylesheet' type='text/css'>-->
+  <title>Game 2</title>
+  <style>
+  body {
+  		margin: 0;
+  		padding: 0;
+  		background-color: #FFFFFF;
+  	}
+  	#Pause{
+  	float:center;
+  	}
+
+  		.textHolder{
+  		width: 400px;
+  	}
+  </style>
+  <script src="pixi.js"></script>
+  <script src="WebGLRenderer.js"></script>
+</head>
+<body>
+<div id="Pause">
+<button onclick="Pause()">Pause/Play</button>
+
+  <script>
+//////////////////////////////////////////////Pause////////////////////////////
+     var flag_Motion = true;
+     var Running = 1;
+  
+  function Pause(){
+      if(Running == 1){
+    	 flag_Motion = false;
+       Running = 0 ;
+   }else{
+   	 flag_Motion = true;
+       Running = 1;
+   }
+   }
+///////////////////////////////////text////////////////////////////////// 
+  // Load them google fonts before starting...!
+  WebFontConfig = {
+    google: {
+      families: [ 'Snippet', 'Arvo:700italic', 'Podkova:700' ]
+    },
+
+    active: function() {
+      // do something
+      init();
+    },
+
+};
+(function() {
+        var wf = document.createElement('script');
+        wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+            '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+        wf.type = 'text/javascript';
+        wf.async = 'true';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(wf, s);
+      })();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+  var count = 0;
+  var enemies = [];
+  var bullets = [];
+  var Lifes=3;
+  
+  // create an array of assets to load
+  var assetsToLoader = [ "SpriteSheet.json"];
+  
+  // create a new loader
+  loader = new PIXI.AssetLoader(assetsToLoader);
+  
+  // use callback
+  loader.onComplete = onAssetsLoaded
+  
+  //begin load
+  loader.load();
+  
+  
+  // holder to store enemies
+  
+  var interactive = true;
+
+  // create an new instance of a pixi stage
+  var stage = new PIXI.Stage(0xFFFFFF,true);
+  
+  // create a renderer instance.
+  renderer = PIXI.autoDetectRenderer(1600, 600);
+  	
+  // add the renderer view element to the DOM
+  document.body.appendChild(renderer.view);
+  
+  // create an empty container
+  
+  var texture = PIXI.Texture.fromImage("jet.png");
+  
+  var jet = new PIXI.Sprite(texture);
+  
+  var texture = PIXI.Texture.fromImage("222.png");
+    var texture2 = PIXI.Texture.fromImage("enemy.png");
+  var texture3 = PIXI.Texture.fromImage("bullets.png"); 
+     var Life = PIXI.Texture.fromImage("life.png");
+
+  // center the sprites anchor point
+  var Life1 = new PIXI.Sprite(Life);
+        var Life2 = new PIXI.Sprite(Life);
+        var Life3 = new PIXI.Sprite(Life);
+  jet.anchor.x = 0.5;
+  jet.anchor.y = 0.5;
+
+  // move the sprite at the center of the screen
+  jet.position.x = 600;
+  jet.position.y = 300;
+  stage.addChild(jet);
+  	
+
+
+//////////////////////////////////////////////background///////////////////////////////////////  
+  
+  var tilingSprite = new PIXI.TilingSprite(texture, window.innerWidth, window.innerHeight)
+  var count1 = 0;
+  
+  stage.addChild(tilingSprite);
+    stage.addChild(jet);
+stage.addChild(Life1);
+        stage.addChild(Life2);
+        stage.addChild(Life3);
+         Life1.position.x = 820;
+        Life1.position.y = 10;
+        Life2.position.x = 860;
+        Life2.position.y = 10;
+        Life3.position.x = 900;
+        Life3.position.y = 10;
+
+//var countingText = new PIXI.Text("You Have Been Playing for: 0 Seconds", "bold italic 30px Arvo", "#3e1707", "#a4410e", 1);
+//countingText.position.x = 620/2;
+//countingText.position.y = 5;
+//countingText.anchor.x = 0.5;
+
+//stage.addChild(countingText);
+//countx = 0;
+//scorex = 0;
+  
+  setInterval(CreateEnemy,2000);
+  jet.setInteractive(true);
+  //////////////////////////////////////////Play/Pause////////////////////////////////
+  	PIXI.InteractionManager.prototype.onMouseMove = function(event)
+        {
+        if(flag_Motion){
+  	jet.position.x = event.pageX;
+      jet.position.y = event.pageY;
+  	
+  }}
+/////////////////////////////////////MOUSE MOTION////////////////////////////////////
+/*
+  mouseover:With this event you can do all kinds of useful things like changing an image,
+  opening up a menu or kick starting an animation.
+  Of all the mouse related events this one and its partner event onmouseout are probably the most widely used.
+*/
+  jet.mouseover = function(jet){
+  	this.isOver = true;
+  }
+/*
+mouseout:The opposite of onmouseover this event fires when the user moves off of an element.  
+*/
+  jet.mouseout = function(jet){
+  	this.isOver = true;
+  }
+/*
+  mousemove:Think of this as the event that happens between onmouseover and onmouseout.
+  It fires repeatedly as the mouse pointer moves over an element.
+  Though interesting in concept it is probably the least used of the HTML4 mouse events.
+*/
+  jet.mousemove=jet.mouseover=function(jet)
+  	{
+  if(this.isOver==true)
+  {
+// need to get parent coords..
+  var newPosition =jet.getLocalPosition(this.parent);
+  this.position.x = newPosition.x;
+  this.position.y = newPosition.y;
+  }
+  	}
+
+/////////////////////////////////////////////Enemy and Shooting///////////////////////////////////////////////  	
+  PIXI.InteractionManager.prototype.onMouseDown = function(event) {
+    		shooting();
+  	}
+  
+  function CreateEnemy() {
+  	var enemy = new PIXI.Sprite(texture2);
+  	enemy.position.x = Math.random()*1400 ;
+  	enemy.position.y = 0 
+
+  	enemy.anchor.x = 0.5;
+  	enemy.anchor.y = 0.5;
+
+  	enemy.scale.x = 1;
+  	enemy.scale.y = 1;
+
+  	enemies.push(enemy);
+
+  	stage.addChild(enemy);
+
+  }
+
+
+
+  function shooting() {
+  	var bulletss = new PIXI.Sprite(texture3);
+  	bulletss.position.x = jet.position.x;
+  	bulletss.position.y = jet.position.y;
+
+  	bulletss.anchor.x = 0.5;
+  	bulletss.anchor.y = 0.5;
+
+  	bulletss.scale.x = 1;
+  	bulletss.scale.y = 1;
+
+  	bullets.push(bulletss);
+
+  	stage.addChild(bulletss);
+    }
+
+
+  function onAssetsLoaded()
+  {
+  	
+  	requestAnimFrame( animate );
+  	
+  }	
+  
+  
+  function animate() {
+      requestAnimFrame( animate );
+  	if(flag_Motion){
+  	
+  	count += 0.005
+  	//tilingSprite.tileScale.x = 2 + Math.sin(count);
+  	tilingSprite.tileScale.y = 2 + Math.cos(count);
+  	
+  	//tilingSprite.tilePosition.x += 1;
+  	tilingSprite.tilePosition.y += 2;
+  
+      for(var i = 0; i<enemies.length; i++){
+  		enemies[i].position.y +=2;
+  	}
+     
+     for(var i = 0; i<bullets.length; i++){
+  		bullets[i].position.y -=10;
+  	}
+  	}
+  	else
+  	{
+  	tilingSprite.tilePosition.y = 2;
+  
+      for(var i = 0; i<enemies.length; i++){
+  		enemies[i].position.y =position.y;
+  	}
+     
+     for(var i = 0; i<bullets.length; i++){
+  		bullets[i].position.y =10;
+  	}
+  	}
+  	//countx++;
+  		//if(countx == 50)
+  		//{
+  			//countx = 0;
+  			//scorex ++
+  		// update the text...
+  		// countingText.setText("COUNT 4EVAR: " + scorex )
+  		//}
+// render the stage 
+//countingText.setText("You Have Been Playing for: " + scorex + " Seconds" );
+
+  	
+      renderer.render(stage);	
+  }
+  
+  
+  function hit()
+  {
+  	for(var i=0;i<bullets.length;i++)
+  	{
+  		
+  		var b=bullets[i];
+  		for(var j=0;j<enemies.length;j++)
+  		{
+  		var a=enemies[j];
+  	 if((b.position.x < (a.position.x + a.width)) && ((b.position.x + b.width) > a.position.x) &&
+  		 (b.position.y < (a.position.y + a.height)) &&
+  		 ((b.position.y + b.height) > a.position.y))
+  		 {
+  		 stage.removeChild(bullets[i]);
+  		stage.removeChild(enemies[j]);
+  		enemies.splice(j,1);
+  		bullets.splice(i,1);
+}
+}  }	
+  }
+  setInterval(hit,20);
+  
+
+  </script>
+<audio controls>
+<source src="Games.ogg" type="audio/ogg">
+<source src="Games.wav" type="audio/wav">
+Your browser does not support the audio element.
+</audio>
+  </body>
+</html>
